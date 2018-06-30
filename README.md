@@ -1,7 +1,7 @@
 ### FIFA Challenge
 
 #### Introduction
-This is notebook for Upgrad FIFA prediction challenge. we have used 4 datasets, 6 features & weighted average method to make naive predictions for round 16, quarter-finals, semi-finals & finals. visualization was done in tableau & remianing eda, data preprocessing & score calculation was done in R.  
+This is notebook for Upgrad FIFA prediction challenge. we have used 4 datasets, 6 features & weighted average method to make naive predictions for round 16, quarter-finals, semi-finals & finals. visualization was done in tableau & remaining EDA, data preprocessing & score calculation was done in R.  
 
 #### Data Sources:
 
@@ -65,7 +65,7 @@ Teams | Winner
 ------------ | -------------
 Spain vs Brazil | Brazil
 
-#### Notes
+#### Notes:
 1. Code file written in R Markdown file is saved in Code folder.
 2. All datasets used are saved in input folder
 3. Final Code output in html & pdf is saved in output folder. final dataset used for predictions is also stored in output folder as 'final_dataset.csv'

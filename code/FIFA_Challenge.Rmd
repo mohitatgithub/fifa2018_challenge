@@ -1,0 +1,213 @@
+---
+title: "FIFA Challenge"
+output:
+  pdf_document: default
+  html_notebook: default
+  html_document: default
+  word_document: default
+---
+
+#### Introduction
+This is notebook for Upgrad FIFA prediction challenge. we have used 4 datasets, 6 features & weighted average method to make naive predictions for round 16, quarter-finals, semi-finals & finals. visualization was done in tableau & remianing eda, data preprocessing & score calculation was done in R.  
+
+
+#### Importing Datasets
+
+Data Sources:
+
+1. https://www.kaggle.com/tadhgfitzgerald/fifa-international-soccer-mens-ranking-1993now (fifa_ranking.csv)
+
+2. https://www.kaggle.com/ahmedelnaggar/fifa-worldcup-2018-dataset (World Cup 2018 Dataset.csv)
+
+3. https://www.kaggle.com/martj42/international-football-results-from-1872-to-2017 (results.csv)
+
+4. https://github.com/neaorin/PredictTheWorldCup/tree/master/input (matches.csv)
+
+```{r}
+library(ggplot2)
+library(dplyr)
+library(scales)
+
+results <- read.csv("results.csv") #Match details of different teams
+fifa_ranking <- read.csv("fifa_ranking.csv") #Yearwise fifa rankings of various teams
+matches <- read.csv("matches.csv")
+fifa2018 <- read.csv("World Cup 2018 Dataset.csv") #ranks & other details of teams participating in FIFA 2018
+```
+
+
+#### Feature Extraction
+We will extract key features from above dataframes first to do some exploratoty analysis & later include complex features for analysis
+```{r}
+fifa_stats <- subset(fifa2018,select=c(Team,Current..FIFA.rank,Previous..titles,Previous..finals,Previous..semifinals))
+```
+
+
+#### Exploratory Analysis
+Top Ten Champions competing in FIFA 2018
+```{r}
+#head(sort(fifa_stats$Current..FIFA.rank), n = 10)
+x = arrange(fifa_stats,Current..FIFA.rank)
+x = x[1:10,]
+head(x,10)
+```
+
+Visualization: FIFA 2018 Tableau Dashboard
+https://public.tableau.com/profile/mohit5191#!/vizhome/FIFA2018ExploratotyAnalysis/Dashboard1
+
+<br>
+<center><img src="fifa_tableau.png"></center>
+<br>
+
+#### Lets check average ranking based on team ranking from 1993 to 2018
+```{r}
+AverageRank <- fifa_ranking %>% group_by(country_full) %>% summarise(mean(rank)) %>% setNames(c('Country', 'AverageRank')) %>% arrange(AverageRank)
+AverageRank <- as.data.frame(AverageRank)
+head(AverageRank,10)
+```
+
+#### Checking Average total points of teams
+```{r}
+AverageTotalPoints <- fifa_ranking %>% group_by(country_full) %>% summarise(mean(total_points)) %>% setNames(c('Country', 'AverageTotalPoints')) %>% arrange(desc(AverageTotalPoints))
+AverageTotalPoints <- as.data.frame(AverageTotalPoints)
+head(AverageTotalPoints,10)
+```
+
+#### Analyzing matches among various teams
+```{r}
+levels(matches$CupName)
+```
+_Lets filter only matches from "FIFA competition team final"_
+
+
+```{r}
+fifa_matches <- subset(matches,CupName="FIFA competition team final")
+```
+
+#### Finding total goals scored by different teams
+```{r}
+TotalGoalsT1 <- fifa_matches %>% group_by(team1Text) %>% summarise(sum(team1Score)) %>% setNames(c('Country', 'TotalGoals')) %>% arrange(desc(TotalGoals))
+
+TotalGoalsT2 <- fifa_matches %>% group_by(team2Text) %>% summarise(sum(team2Score)) %>% setNames(c('Country', 'TotalGoals')) %>% arrange(desc(TotalGoals))
+```
+ 
+ 
+#### Finding lead maintained by various teams during past FIFA teams
+```{r}
+fifa_matches$team1Lead <- fifa_matches$team1Score - fifa_matches$team2Score
+fifa_matches$team2Lead <- fifa_matches$team2Score - fifa_matches$team1Score
+
+fifa_matches_team1 <- subset(fifa_matches,select=c(team1Text,team1Lead))
+fifa_matches_team2 <- subset(fifa_matches,select=c(team2Text,team2Lead))
+
+fifa_matches_team1_avg <- fifa_matches_team1 %>% group_by(team1Text) %>% summarise(mean(team1Lead, na.rm = TRUE)) %>% setNames(c('Country', 'AverageLead')) %>% arrange(desc(AverageLead))
+
+fifa_matches_team2_avg <- fifa_matches_team2 %>% group_by(team2Text) %>% summarise(mean(team2Lead, na.rm = TRUE)) %>% setNames(c('Country', 'AverageLead'))
+
+fifa_matches_teams_avg <- merge(fifa_matches_team1_avg, fifa_matches_team2_avg, by = "Country")
+fifa_matches_teams_avg$AverageLead <- fifa_matches_teams_avg$AverageLead.x + fifa_matches_teams_avg$AverageLead.y
+fifa_matches_teams_avg <- subset(fifa_matches_teams_avg,select=c(Country,AverageLead))
+```
+
+#### Lets combine these features & analyse further
+```{r}
+fifa <- data_frame()
+
+fifa <- merge(fifa_stats,AverageRank,by.x = "Team",by.y = "Country")
+fifa <- merge(fifa,AverageTotalPoints,by.x = "Team",by.y = "Country")
+
+fifa <- merge(fifa,fifa_matches_teams_avg,by.x = "Team",by.y = "Country")
+```
+_So final selected features for prediction are Previous Titles, Previous Finals, Previous Semifinals, Average Total Points, Average Lead & Average Rank. however these features need further prerocessing._
+
+#### Further Preprocessing
+```{r}
+fifa <- fifa[,-c(2)]
+fifa$InverseAvgRank <- 1/fifa$AverageRank
+fifa <- fifa[,-c(5)] 
+```
+
+#### Scaling Data 
+This step is neccessary as we will be using a weighted average for predictions, here we are scaling all 6 features on scle of 1 to 10
+```{r}
+fifa_subset <- fifa[,c(2:7)]
+fifa_subset <- data.frame(lapply(fifa_subset,function(x) rescale(as.numeric(x), to=c(1,10)))) 
+
+summary(fifa_subset)
+```
+
+#### Calculating weighted winning likelihood 
+Weightages given to features are:
+
+Feature | Weightage
+------------ | -------------
+Previous Titles | 5%
+Previous Finals | 10%
+Previous Semifinals | 10%
+Average Total Points | 25%
+Average Lead | 25%
+Average Rank | 25%
+
+```{r}
+fifa <- cbind(fifa[,c(1)],fifa_subset)
+names(fifa)[names(fifa) == "fifa[, c(1)]"] <- "Team"
+
+WinningWeightage = c()
+for(i in 1:nrow(fifa)){
+WinningScore <- sum(fifa[i,2]*.05,fifa[i,3]*.1,fifa[i,4]*.1,fifa[i,5]*.25,fifa[i,6]*.25,fifa[i,7]*.25)
+WinningWeightage <- c(WinningWeightage, WinningScore)
+}
+
+fifa$WinChance <- WinningWeightage
+```
+
+#### Calculating individual match winners using WinChance, predicted winners are mentioned in comment after each comparision
+
+#### Current Team Positions
+
+<br>
+<center><img src="fifa_position.png"></center>
+<br>
+
+#### Round 16:
+```{r}
+which(fifa[fifa$Team=="France",]$WinChance > fifa[fifa$Team=="Argentina",]$WinChance) #Argentina
+#which(fifa[fifa$Team=="Uruguay",]$WinChance > fifa[fifa$Team=="Porugal",]$WinChance) Porugal
+
+which(fifa[fifa$Team=="Brazil",]$WinChance > fifa[fifa$Team=="Mexico",]$WinChance) #Brazil
+which(fifa[fifa$Team=="Belgium",]$WinChance > fifa[fifa$Team=="Japan",]$WinChance) #Belgium
+
+which(fifa[fifa$Team=="Spain",]$WinChance > fifa[fifa$Team=="Russia",]$WinChance) #Spain
+which(fifa[fifa$Team=="Croatia",]$WinChance > fifa[fifa$Team=="Denmark",]$WinChance) #Croatia
+
+which(fifa[fifa$Team=="Sweden",]$WinChance > fifa[fifa$Team=="Switzerland",]$WinChance) #Sweden
+#which(fifa[fifa$Team=="Columbia",]$WinChance > fifa[fifa$Team=="England",]$WinChance) #England
+```
+
+#### Quarter-Finals:
+```{r}
+which(fifa[fifa$Team=="Porugal",]$WinChance > fifa[fifa$Team=="Argentina",]$WinChance) #Argentina
+which(fifa[fifa$Team=="Brazil",]$WinChance > fifa[fifa$Team=="Belgium",]$WinChance) #Brazil
+
+which(fifa[fifa$Team=="Spain",]$WinChance > fifa[fifa$Team=="Croatia",]$WinChance) #Spain
+which(fifa[fifa$Team=="Sweden",]$WinChance > fifa[fifa$Team=="England",]$WinChance) #England
+```
+
+#### Semi-Finals:
+```{r}
+which(fifa[fifa$Team=="Brazil",]$WinChance > fifa[fifa$Team=="Argentina",]$WinChance) #Brazil
+which(fifa[fifa$Team=="Spain",]$WinChance > fifa[fifa$Team=="England",]$WinChance) #Spain
+```
+
+#### Finals:
+```{r}
+which(fifa[fifa$Team=="Spain",]$WinChance > fifa[fifa$Team=="Brazil",]$WinChance) #Brazil
+```
+
+So Brzail should win FIFA 2018 as per our naive approach. 
+
+File with final features used to make predictions is saved as final_dataset.csv in output folder
+
+```{r}
+#write.csv(fifa,"final_dataset.csv")
+```
+
