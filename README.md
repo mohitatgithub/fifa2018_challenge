@@ -1,7 +1,7 @@
 ### FIFA Challenge
 
 #### Introduction
-This is notebook for Upgrad FIFA prediction challenge. we have used 4 datasets, 6 features & weighted average method to make naive predictions for round 16, quarter-finals, semi-finals & finals. visualization was done in tableau & remaining EDA, data preprocessing & score calculation was done in R.  
+This is repository for Upgrad FIFA prediction challenge. we have used 4 datasets, 6 features & weighted average method to make naive predictions for round 16, quarter-finals, semi-finals & finals. visualization was done in tableau & remaining EDA, data preprocessing & score calculation was done in R. Check code for further clarification on any of below steps.
 
 #### Data Sources:
 
@@ -14,7 +14,7 @@ This is notebook for Upgrad FIFA prediction challenge. we have used 4 datasets, 
 4. https://github.com/neaorin/PredictTheWorldCup/tree/master/input (matches.csv)
 
 #### Feature Extraction & Weightage
-We have calculated following key features from above datasets & given below weightages as per their relevance(subjective) for winner predictions.
+We have calculated following key features from above datasets & given below weightages as per their relevance(subjective) for winner predictions. these features were further normalized on scale of 1 to 10 before taking weighted average.
 
 Feature | Weightage
 ------------ | -------------
@@ -24,6 +24,8 @@ Previous Semifinals | 10%
 Average Total Points | 25%
 Average Lead | 25%
 Average Rank(Inversed) | 25%
+
+Finally feature WinChance was calculated as weighted sum of above 6 features. Final values of WinChance are given in final_dataset.csv in output folder.
 
 #### Predicted Winners:
 
