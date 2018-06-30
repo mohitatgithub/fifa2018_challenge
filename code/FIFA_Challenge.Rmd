@@ -55,7 +55,7 @@ Visualization: FIFA 2018 Tableau Dashboard
 https://public.tableau.com/profile/mohit5191#!/vizhome/FIFA2018ExploratotyAnalysis/Dashboard1
 
 <br>
-<center><img src="fifa_tableau.png"></center>
+<center><img src="../visualization/fifa_tableau.png"></center>
 <br>
 
 #### Lets check average ranking based on team ranking from 1993 to 2018
@@ -165,7 +165,7 @@ fifa$WinChance <- WinningWeightage
 #### Current Team Positions
 
 <br>
-<center><img src="fifa_position.png"></center>
+<center><img src="../visualization/fifa_position.png"></center>
 <br>
 
 #### Round 16:
