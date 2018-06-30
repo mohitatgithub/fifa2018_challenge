@@ -64,3 +64,10 @@ Spain vs England | Spain
 Teams | Winner
 ------------ | -------------
 Spain vs Brazil | Brazil
+
+#### Notes
+1. Code file written in R Markdown file is saved in Code folder.
+2. All datasets used are saved in input folder
+3. Final Code output in html & pdf is saved in output folder. final dataset used for predictions is also stored in output folder as 'final_dataset.csv'
+
+_Due to lack of time we have not used any ML algorithm to make prediction, rather we have used a weighted average on normalized feature values to make a slightly better guess then a toss of coin. We are still working on solution locally & will include ML algorithms & better features to make predictions in future solutions._
