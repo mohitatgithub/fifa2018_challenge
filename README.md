@@ -13,7 +13,7 @@ This is repository for Upgrad FIFA prediction challenge. we have used 4 datasets
 
 4. https://github.com/neaorin/PredictTheWorldCup/tree/master/input (matches.csv)
 
-#### Feature Extraction & Weightage
+#### Feature Extraction & Weightage:
 We have calculated following key features from above datasets & given below weightages as per their relevance(subjective) for winner predictions. these features were further normalized on scale of 1 to 10 before taking weighted average.
 
 Feature | Weightage
@@ -69,7 +69,7 @@ Spain vs Brazil | Brazil
 
 #### Notes:
 1. Code file written in R Markdown file is saved in Code folder.
-2. All datasets used are saved in input folder
-3. Final Code output in html & pdf is saved in output folder. final dataset used for predictions is also stored in output folder as 'final_dataset.csv'
+2. All datasets used are saved in input folder.
+3. Final Code output in html & pdf is saved in output folder. final dataset used for predictions is also stored in output folder as 'final_dataset.csv'.
 
 _Due to lack of time we have not used any ML algorithm to make prediction, rather we have used a weighted average on normalized feature values to make a slightly better guess then a toss of coin. We are still working on solution locally & will include ML algorithms & better features to make predictions in future solutions._
