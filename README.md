@@ -14,7 +14,7 @@ This is notebook for Upgrad FIFA prediction challenge. we have used 4 datasets, 
 4. https://github.com/neaorin/PredictTheWorldCup/tree/master/input (matches.csv)
 
 #### Feature Extraction & Weightage
-We have calculated following key features from above datsets & given below weightages as per their relevance(subjective) for winner predictions.
+We have calculated following key features from above datasets & given below weightages as per their relevance(subjective) for winner predictions.
 
 Feature | Weightage
 ------------ | -------------
@@ -23,7 +23,7 @@ Previous Finals | 10%
 Previous Semifinals | 10%
 Average Total Points | 25%
 Average Lead | 25%
-Average Rank | 25%
+Average Rank(Inversed) | 25%
 
 #### Predicted Winners:
 
